@@ -72,6 +72,14 @@ section,.letter,.mask{text-align:center}
 .hin{position:absolute;inset:6px;clip-path:url(#hc);overflow:hidden;background:#d9c3b8}
 .hbg{position:absolute;inset:-20%;width:140%;height:140%;object-fit:cover;filter:blur(18px) saturate(1.1);opacity:.95}
 .hfg{position:absolute;left:50%;top:44%;width:76%;height:auto;transform:translate(-50%,-50%);border-radius:14px;box-shadow:0 6px 18px #0004;display:block}
+.ov{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;background:#1a1220aa;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .45s ease}
+.ov.show{opacity:1;pointer-events:auto}
+.sheet{position:relative;width:100%;max-width:520px;max-height:84vh;overflow:auto;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:34px 26px 14px;text-align:center;box-shadow:0 24px 60px #0006;transform:translateY(18px) scale(.97);transition:transform .5s ease}
+.ov.show .sheet{transform:none}
+.sheet .x{position:absolute;top:8px;right:12px;background:none;border:0;font:300 2rem/1 Poppins,sans-serif;color:var(--soft);cursor:pointer}
+.sheet .when{font:300 .7rem Poppins,sans-serif;letter-spacing:.25em;text-transform:uppercase;color:var(--soft);margin-bottom:18px}
+.sheet .body p{font-size:1.35rem;line-height:1.7;margin:0 0 16px}
+.sheet .body .by{font-style:italic;color:var(--soft);padding-bottom:10px}
 </style>
 </head>
 <body>
@@ -119,7 +127,6 @@ section,.letter,.mask{text-align:center}
     <h2 class="fade">Open when…</h2>
     <p class="fade" style="font-size:1.2rem;color:var(--soft)">Some letters for the days you might need them. Open one now, or save them.</p>
     <div class="env-grid fade" id="grid"></div>
-    <div id="letters"></div>
   </section>
 
   <div class="end">
@@ -137,13 +144,17 @@ const L=[
 ["we've had a fight","I'm starting by saying I'm sorry for whatever I got wrong.","I'd always rather be on your side than be right. Let's talk it through kindly, because nothing matters more to me than us."],
 ["you want to remember us","It started in college, with no idea what it would become.","Then Goa, then so many ordinary days that turned out to be the best ones. If you ever wonder whether it was worth it, the answer is yes. A thousand times yes."]
 ];
-const g=document.getElementById('grid'),lt=document.getElementById('letters');
+const g=document.getElementById('grid');
+const ov=document.createElement('div');ov.className='ov';ov.innerHTML='<div class="sheet" role="dialog" aria-modal="true"><button class="x" aria-label="Close">×</button><div class="when"></div><div class="body"></div></div>';
+document.body.appendChild(ov);
+const wh=ov.querySelector('.when'),bd=ov.querySelector('.body');
+function closeL(){ov.classList.remove('show');document.body.style.overflow=''}
+ov.onclick=e=>{if(e.target===ov||e.target.classList.contains('x'))closeL()};
+addEventListener('keydown',e=>{if(e.key==='Escape')closeL()});
 L.forEach((l,i)=>{
  const b=document.createElement('button');b.className='env';b.innerHTML=`<i></i><b>Open when</b>${l[0]}`;
- const d=document.createElement('div');d.className='letter';d.id='l'+i;
- d.innerHTML=`<div><p>${l[1]}</p><p>${l[2]}</p><p class="by">Yours, always.</p></div>`;
- b.onclick=()=>{const was=d.classList.contains('open');document.querySelectorAll('.letter').forEach(x=>x.classList.remove('open'));if(!was){d.classList.add('open');b.classList.add('read');setTimeout(()=>d.scrollIntoView({block:'center'}),200)}};
- g.appendChild(b);lt.appendChild(d);
+ b.onclick=()=>{wh.textContent='Open when '+l[0];bd.innerHTML=`<p>${l[1]}</p><p>${l[2]}</p><p class="by">Yours, always.</p>`;ov.classList.add('show');document.body.style.overflow='hidden';b.classList.add('read');ov.querySelector('.sheet').scrollTop=0};
+ g.appendChild(b);
 });
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.2});
 document.querySelectorAll('.fade').forEach(el=>io.observe(el));
